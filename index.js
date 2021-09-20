@@ -37,17 +37,23 @@ async function getMusic(url, ctx) {
         },
         method: 'POST'
     }, function (err, res, body) {
-          body = JSON.parse(body);
-          if (body.status == "success" && body.result) {
-                const keyboardLink = Markup.inlineKeyboard([
+        body = JSON.parse(body);
+        console.log(body);
+            if (body.status == "success" && body.result) {
+                if (body.result.hasOwnProperty("apple_music") && body.result.hasOwnProperty("spotify")) {
+                    const keyboardLink = Markup.inlineKeyboard([
                         Markup.button.url('Apple Music', decodeURI(body.result.apple_music.url)),
                         Markup.button.url('Spotify', decodeURI(body.result.spotify.external_urls.spotify))
-                ]);
-                ctx.reply(`Артист: ${body.result.artist}\nНазвание: ${body.result.title}\nАльбом: ${body.result.album}\nДата релиза: ${body.result.release_date}\n${decodeURI(body.result.song_link)}`, keyboardLink.resize());
-          }
-          else {
-            return ctx.reply("Не распознано");
-          }
+                    ]);
+                    ctx.reply(`Артист: ${body.result.artist}\nНазвание: ${body.result.title}\nАльбом: ${body.result.album}\nДата релиза: ${body.result.release_date}\n${decodeURI(body.result.song_link)}`, keyboardLink.resize());
+                }   
+                else {
+                    ctx.reply(`Артист: ${body.result.artist}\nНазвание: ${body.result.title}\nАльбом: ${body.result.album}\nДата релиза: ${body.result.release_date}\n${decodeURI(body.result.song_link)}`);
+                }
+            }
+            else {
+                return ctx.reply("Не распознано");
+            }
     });
 }
 
