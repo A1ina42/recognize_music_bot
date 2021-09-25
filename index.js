@@ -14,7 +14,7 @@ bot.start(async(ctx) => {
 bot.on("voice", async(ctx) => {
     try {
         const url = await ctx.telegram.getFileLink(ctx.message.voice.file_id);
-        getMusic(url.href, ctx);
+        await getMusic(url.href, ctx);
     }
     catch(err) {
         console.log(err);
@@ -24,7 +24,7 @@ bot.on("voice", async(ctx) => {
 // Распознавание аудиозаписи
 bot.on("audio", async(ctx) => {
     const url = await ctx.telegram.getFileLink(ctx.message.audio.file_id);
-    getMusic(url.href, ctx);
+    await getMusic(url.href, ctx);
 })
 
 async function getMusic(url, ctx) {
@@ -38,22 +38,15 @@ async function getMusic(url, ctx) {
         method: 'POST'
     }, function (err, res, body) {
         body = JSON.parse(body);
-        console.log(body);
-            if (body.status == "success" && body.result) {
-                if (body.result.hasOwnProperty("apple_music") && body.result.hasOwnProperty("spotify")) {
-                    const keyboardLink = Markup.inlineKeyboard([
-                        Markup.button.url('Apple Music', decodeURI(body.result.apple_music.url)),
-                        Markup.button.url('Spotify', decodeURI(body.result.spotify.external_urls.spotify))
-                    ]);
-                    ctx.reply(`Артист: ${body.result.artist}\nНазвание: ${body.result.title}\nАльбом: ${body.result.album}\nДата релиза: ${body.result.release_date}\n${decodeURI(body.result.song_link)}`, keyboardLink.resize());
-                }   
-                else {
-                    ctx.reply(`Артист: ${body.result.artist}\nНазвание: ${body.result.title}\nАльбом: ${body.result.album}\nДата релиза: ${body.result.release_date}\n${decodeURI(body.result.song_link)}`);
-                }
-            }
-            else {
-                return ctx.reply("Не распознано");
-            }
+        let buttons = [];                   
+        if (body.status == "success" && body.result) {
+            if (body.result.hasOwnProperty("apple_music")) buttons.push(Markup.button.url('Apple Music', decodeURI(body.result.apple_music.url)));
+            if (body.result.hasOwnProperty("spotify")) buttons.push(Markup.button.url('Spotify', decodeURI(body.result.spotify.external_urls.spotify)));
+            ctx.reply(`Артист: ${body.result.artist}\nНазвание: ${body.result.title}\nАльбом: ${body.result.album}\nДата релиза: ${body.result.release_date}\n${decodeURI(body.result.song_link)}`, Markup.inlineKeyboard(buttons).resize());
+        }
+        else {
+            return ctx.reply("Не распознано");
+        }
     });
 }
 
